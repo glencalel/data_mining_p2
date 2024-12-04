@@ -11,6 +11,7 @@ library(rpart)
 library(rpart.plot)
 library(randomForest)
 
+
 # LOAD ALL DATA BY YEAR
 data_2022 <- read_sav('C:\\files\\2022.sav')
 data_2021 <- read_sav('C:\\files\\2021.sav')
@@ -59,6 +60,8 @@ data_2015$MUNIRESIDEN <- labelled(data_2015$MUNIRESIDEN, labels = attr(data_2022
 data_2022_2015 <- bind_rows(data_2022, data_2021, data_2020, data_2019, data_2018, data_2017, data_2016, data_2015)
 data_2014_2009 <- bind_rows(data_2014, data_2013, data_2012, data_2011, data_2010, data_2009)
 
+data_2022_2015$EDAD[data_2022_2015$EDAD == 999] <- 99
+
 
 # DECISION TREE - NO.1
 data_dt_1 <- subset(data_2022_2015, AÑO %in% c(2020,2021,2022))
@@ -75,7 +78,7 @@ tree1 <- rpart(SEXO ~
                method = "class")
 
 rpart.plot(tree1, type=2, extra=0, under = TRUE, fallen.leaves = TRUE, box.palette = "BuGn", 
-           main ="Predicción de area", cex = 1)
+           main ="Predicción de sexo", cex = 1)
 
 dataPrediction1 <- data.frame(
   AÑO=c(2021),
@@ -106,7 +109,7 @@ tree2 <- rpart(MUNIRESIDEN ~
                method = "class")
 
 rpart.plot(tree2, type=2, extra=0, under = TRUE, fallen.leaves = TRUE, box.palette = "BuGn", 
-           main ="Predicción de area", cex = 0.75)
+           main ="Predicción de municipio", cex = 0.75)
 
 dataPrediction2 <- data.frame(
   EDAD=c(10),
@@ -125,15 +128,14 @@ data_dt_3 <- subset(data_2022_2015, CAUFIN %in% c("A30","A300","A301","A302","A3
 
 tree3 <- rpart(CAUFIN ~ 
                  EDAD+
-                 SEXO+
                  PPERTENENCIA+
-                 PERIODOEDA+
+                 SEXO+
                  DEPTORESIDEN,
                data = data_dt_3,
                method = "class")
 
 rpart.plot(tree3, type=2, extra=0, under = TRUE, fallen.leaves = TRUE, box.palette = "BuGn", 
-           main ="Predicción de sexo", cex = 0.5)
+           main ="Predicción de enfermedad", cex = 0.7)
 
 
 dataPrediction3 <- data.frame(
@@ -178,35 +180,81 @@ result4
 
 
 # RANDOM FOREST - NO.1
-data_rf_1 <- subset(data_2022_2015, TC %in% c(3,4))
-data_rf_1 <- subset(data_rf_1, MUNIRESIDEN = 0101)
-data_rf_1 <- subset(data_rf_1, CAUFIN %in% c('I10X'))
-data_rf_1 <- data_rf_1[, !(names(data_rf_1) %in% c("DEPTORESIDEN"))]
-data_rf_1 <- data_rf_1[, !(names(data_rf_1) %in% c("MUNIRESIDEN"))]
+data_rf_1 <- subset(data_2022_2015, CAUFIN %in% 
+                     c(
+                       "H521",
+                       "H522"
+                     )
+                    & DEPTORESIDEN != 99
+)
+
+data_rf_1$DEPTORESIDEN <- as.factor(data_rf_1$DEPTORESIDEN)
+
+set.seed(100)
+data_rf_1 <- data_rf_1[sample(1:nrow(data_rf_1)),]
+
+index <-sample(1:nrow(data_rf_1), 0.8*nrow(data_rf_1))
+
+train_rf_1 <- data_rf_1[index,]
+test_rf_1 <- data_rf_1[-index,]
+
+tree_rf1 <- randomForest(DEPTORESIDEN ~ 
+                           EDAD+ 
+                           PPERTENENCIA+ 
+                           CAUFIN+
+                           SEXO,
+                       data = train_rf_1,
+                       ntree = 100,
+                       mtry = 3
+)
+
+train_rf1 <- predict(tree_rf1, test_rf_1)
+train_rf1 
+
+new_data_1 <- data.frame(
+  EDAD=18,
+  PPERTENENCIA=1,
+  CAUFIN="H522",
+  SEXO=1
+)
+
+prediccion1 <- predict(tree_rf1, new_data_1)
+prediccion1
 
 
+# RANDOM FOREST - NO.2
+data_rf_2 <- subset(data_2022_2015, CAUFIN %in% c("G20X") & DEPTORESIDEN != 99)
+data_rf_2 <- data_rf_2[, !(names(data_rf_2) %in% c("CAUFIN"))]
 
+data_rf_2$SEXO <- as.factor(data_rf_2$SEXO)
 
+set.seed(100)
+data_rf_2 <- data_rf_2[sample(1:nrow(data_rf_2)),]
 
+index2 <-sample(1:nrow(data_rf_2), 0.8*nrow(data_rf_2))
 
+train_rf_2 <- data_rf_2[index2,]
+test_rf_2 <- data_rf_2[-index2,]
 
+tree_rf2 <- randomForest(SEXO ~ 
+                           DEPTORESIDEN+ 
+                           PPERTENENCIA+
+                           EDAD,
+                         data = train_rf_2,
+                         ntree = 100,
+                         mtry = 3
+)
 
+train_rf2 <- predict(tree_rf2, test_rf_2)
+train_rf2 
 
+new_data_2 <- data.frame(
+  DEPTORESIDEN=5,
+  PPERTENENCIA=1,
+  EDAD=70
+)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+prediction2 <- predict(tree_rf2, new_data_2)
+prediction2
 
 
