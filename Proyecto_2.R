@@ -83,9 +83,9 @@ rpart.plot(tree1, type=2, extra=0, under = TRUE, fallen.leaves = TRUE, box.palet
            main ="Predicción de sexo", cex = 1)
 
 dataPrediction1 <- data.frame(
-  AÑO=c(2021),
+  AÑO=c(2022),
   DEPTORESIDEN=c(1),
-  EDAD=c(16),
+  EDAD=c(18),
   PPERTENENCIA=c(4),
   PERIODOEDA=c(3),
   TC=c(2)
@@ -105,19 +105,18 @@ tree2 <- rpart(MUNIRESIDEN ~
                  EDAD+
                  PPERTENENCIA+
                  PERIODOEDA+
-                 DEPTORESIDEN+
-                 TC,
+                 DEPTORESIDEN,
                data = data_dt_2,
                method = "class")
 
-rpart.plot(tree2, type=2, extra=0, under = TRUE, fallen.leaves = TRUE, box.palette = "BuGn", 
+rpart.plot(tree2, type=2, extra=0, under = TRUE, fallen.leaves = TRUE, box.palette = "BuGn",
            main ="Predicción de municipio", cex = 0.75)
 
 dataPrediction2 <- data.frame(
-  EDAD=c(10),
+  EDAD=c(20),
   PPERTENENCIA=c(4),
   PERIODOEDA=c(3),
-  DEPTORESIDEN=c(1)
+  DEPTORESIDEN=c(9)
 )
 
 result2 <- predict(tree2, dataPrediction2, type="class")
@@ -141,11 +140,10 @@ rpart.plot(tree3, type=2, extra=0, under = TRUE, fallen.leaves = TRUE, box.palet
 
 
 dataPrediction3 <- data.frame(
-  EDAD=c(10),
-  SEXO=c(1),
+  EDAD=c(68),
   PPERTENENCIA=c(4),
-  PERIODOEDA=c(3),
-  DEPTORESIDEN=c(1)
+  SEXO=c(9),
+  DEPTORESIDEN=c(21)
 )
 
 result3 <- predict(tree3, dataPrediction3, type="class")
@@ -170,10 +168,9 @@ rpart.plot(tree4, type=2, extra=0, under = TRUE, fallen.leaves = TRUE, box.palet
 
 
 dataPrediction4 <- data.frame(
-  EDAD=c(4),
-  SEXO=c(3),
-  DEPTORESIDEN=c(1),
-  MUNIRESIDEN=c(0101)
+  EDAD=c(40),
+  SEXO=c(9),
+  MUNIRESIDEN=c('1410')
 )
 
 result4 <- predict(tree4, dataPrediction4, type="class")
@@ -223,6 +220,7 @@ new_data_1 <- data.frame(
 prediccion1 <- predict(tree_rf1, new_data_1)
 prediccion1
 
+plot(tree_rf1)
 
 # RANDOM FOREST - NO.2
 data_rf_2 <- subset(data_2022_2015, CAUFIN %in% c("G20X") & DEPTORESIDEN != 99)
@@ -259,4 +257,5 @@ new_data_2 <- data.frame(
 prediction2 <- predict(tree_rf2, new_data_2)
 prediction2
 
+plot(tree_rf2)
 
